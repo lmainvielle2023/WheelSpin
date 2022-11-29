@@ -103,21 +103,20 @@
           "#ff9800",
           "#ff5722",
         ];
-        let wheels = null;
+        var wheels = [];
         let frame = null;
         let arrow = null;
 
         function repaint(angle) {
           let r = (Math.min(innerWidth, innerHeight) / 2.25) | 0;
-          if (wheels === null) {
-            wheels = [];
-            for ( let selected = 0;
-                  selected < participantNames.length;
-                  selected++ ) {
+          //  if (wheels === null) {
+            // for ( let selected = 0;
+            //       selected < participantNames.length;
+            //       selected++ ) {
             
               let c = document.createElement("canvas");
               c.width = c.height = 2 * r + 10;
-              let ctx = c.getContext("2d"),
+              var ctx = c.getContext("2d"),
                 cx = 5 + r,
                 cy = 5 + r;
               // let g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
@@ -135,7 +134,7 @@
                 ctx.arc(cx, cy, r, a0, a1, false);
                 ctx.fillStyle = colors[i % participantNames.length];
                 ctx.fill();
-                // ctx.fillStyle = g;
+                 ctx.fillStyle = "black";
                 ctx.save();
                 ctx.font =
                   "bold " + (r / participantNames.length) * 0.5 + "px serif";
@@ -147,10 +146,9 @@
                 ctx.restore();
               }
               wheels.push(c);
-            }
-            alert(wheels);
-            
-          }
+            // }
+
+          //  }
           if (frame === null) {
             frame = document.createElement("canvas");
             frame.width = frame.height = (10 + 2 * r * 1.25) | 0;
@@ -187,25 +185,25 @@
 
           canvas.width = innerWidth;
           canvas.height = innerHeight;
-          let cx = innerWidth / 2,
+           cx = innerWidth / 2;
             cy = innerHeight / 2;
-          let ctx = canvas.getContext("2d");
-          let selected =
+           ctx = canvas.getContext("2d");
+          var selected =
             Math.floor(
               ((-0.2 - angle) * participantNames.length) / (2 * Math.PI)
             ) % participantNames.length;
           if (selected < 0) {
             selected += participantNames.length;
           }
-        //  alert(selected);
+          //  alert(selected);
           ctx.save();
           ctx.translate(cx, cy);
           ctx.rotate(angle);
           ctx.translate(
-            -wheels[selected].width / 2,
-            -wheels[selected].height / 2
+            -wheels[0].width / 2,
+            -wheels[0].height / 2
           );
-          ctx.drawImage(wheels[selected], 0, 0);
+          ctx.drawImage(wheels[0], 0, 0);
           ctx.restore();
           ctx.drawImage(frame, cx - frame.width / 2, cy - frame.height / 2);
         }
@@ -256,11 +254,13 @@
 
         repaint(angle);
         let csz = null;
+
+
         setInterval(function () {
           let sz = innerWidth + "/" + innerHeight;
           if (csz !== sz) {
             csz = sz;
-            wheels = frame = null;
+            frame = null;
             repaint(angle);
           }
         }, 10);
