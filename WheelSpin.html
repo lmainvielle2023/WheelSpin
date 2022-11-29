@@ -1,0 +1,294 @@
+<head>
+  <meta charset="utf-8" />
+  <title>WheelSpin</title>
+  <h1>Spin the Wheel!</h1>
+  <style>
+    body {
+      font-family: Georgia, "Times New Roman", Times, serif;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+      background: hsl(0, 1%, 84%);
+    }
+
+    h2 {
+      align-items: center;
+    }
+
+    h1 {
+      text-align: center;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      color: blue;
+    }
+  </style>
+</head>
+<body>
+  <h2>
+    Enter Information Below <br />
+    Participants(Name,Tickets):
+  </h2>
+  <textarea
+    id="participants"
+    name="participants"
+    rows="20"
+    cols="50"
+  ></textarea>
+  <br />
+  <button id="wheelButton">Create Wheel</button>
+  <button id="reCreateButton">ReCreate Wheel</button>
+  <body>
+    <canvas id="canvas" width="1264" height="139"></canvas>
+    <script>
+      //Buttons and Linking Functions
+      const reCreateButton = document.getElementById("reCreateButton");
+      reCreateButton.addEventListener("click", reCreateWheel);
+      const wheelButton = document.getElementById("wheelButton");
+      wheelButton.addEventListener("click", storeParticipants);
+      wheelButton.addEventListener("click", createWheel);
+      //Global Variables and Parallel Arrays
+      var tickets = 0;
+      var participantNames = [];
+      var participantTickets = [];
+      var startPoints = [];
+      var endPoints = [];
+      var perecnts = [];
+      var degrees = [];
+      var winner;
+      var winningAngle;
+
+      function storeParticipants() {
+        //Parse Inputs(Names, Tickets)
+        var input = document.getElementById("participants").value;
+        var splitInput = input.split("\n");
+        for (var i = 0; i < splitInput.length; i++) {
+          //Error check for comma
+          if (splitInput[i].indexOf(",") < 0) {
+            alert("Comma needed between Name and Tickets");
+            return;
+          }
+          var parseInput = splitInput[i].split(",");
+          participantNames.push(parseInput[0]);
+          //Error check for ticket number
+          if (!isNaN(parseInput[1])) {
+            participantTickets.push(parseInput[1]);
+          } else {
+            alert(
+              participantNames[i] + " does not have a numerical ticket value."
+            );
+            return;
+          }
+          tickets += parseInt(parseInput[1]);
+        }
+        calculateAngles(participantNames, participantTickets);
+      }
+
+      function createWheel() {
+        let canvas = document.getElementById("canvas");
+        let colors = [
+          "#f44336",
+          "#e81e63",
+          "#9c27b0",
+          "#673ab7",
+          "#3f51b5",
+          "#2196f3",
+          "#03a9f4",
+          "#00bcd4",
+          "#009688",
+          "#4caf50",
+          "#8bc34a",
+          "#cddc39",
+          "#ffeb3b",
+          "#ffc107",
+          "#ff9800",
+          "#ff5722",
+        ];
+        let wheels = null;
+        let frame = null;
+        let arrow = null;
+
+        function repaint(angle) {
+          let r = (Math.min(innerWidth, innerHeight) / 2.25) | 0;
+          if (wheels === null) {
+            wheels = [];
+            for ( let selected = 0;
+                  selected < participantNames.length;
+                  selected++ ) {
+            
+              let c = document.createElement("canvas");
+              c.width = c.height = 2 * r + 10;
+              let ctx = c.getContext("2d"),
+                cx = 5 + r,
+                cy = 5 + r;
+              // let g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+              // g.addColorStop(0, "rgba(0,0,0,0)");
+              // g.addColorStop(1, "rgba(0,0,0,1)");
+              for (let i = 0; i < participantNames.length; i++) {
+                //start of circle
+                let a0 = (startPoints[i] / 360) * 2 * Math.PI;
+                //end of circle
+                let a1 = (endPoints[i] / 360) * 2 * Math.PI;
+                // centers the numbers in each section
+                let a = (a1 + a0) / 2;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r, a0, a1, false);
+                ctx.fillStyle = colors[i % participantNames.length];
+                ctx.fill();
+                // ctx.fillStyle = g;
+                ctx.save();
+                ctx.font =
+                  "bold " + (r / participantNames.length) * 0.5 + "px serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.translate(cx, cy);
+                ctx.rotate(a);
+                ctx.fillText(participantNames[i], r * 0.62, 0);
+                ctx.restore();
+              }
+              wheels.push(c);
+            }
+            alert(wheels);
+            
+          }
+          if (frame === null) {
+            frame = document.createElement("canvas");
+            frame.width = frame.height = (10 + 2 * r * 1.25) | 0;
+            let ctx = frame.getContext("2d"),
+              cx = frame.width / 2,
+              cy = frame.height / 2;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, r * 1.025, 0, 2 * Math.PI, true);
+            ctx.arc(cx, cy, r * 0.975, 0, 2 * Math.PI, false);
+            ctx.fillStyle = "#444";
+            ctx.fill();
+
+          //  g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r / 3);
+
+           // g.addColorStop(1, "#444");
+           // ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r / 6.5, 0, 2 * Math.PI, false);
+            ctx.fill();
+            ctx.translate(cx, cy);
+            ctx.rotate(Math.PI - 0.2);
+            //make arrow
+            if (arrow == null) {
+              arrow = document.createElement("arrow");
+              ctx.beginPath();
+              ctx.moveTo(-r * 1.1, -r * 0.05);
+              var arrow = ctx.lineTo(-r * 0.9, 0);
+              ctx.lineTo(-r * 1.1, r * 0.05);
+              ctx.fillStyle = "#FFF";
+              ctx.fill();
+            }
+          }
+
+          canvas.width = innerWidth;
+          canvas.height = innerHeight;
+          let cx = innerWidth / 2,
+            cy = innerHeight / 2;
+          let ctx = canvas.getContext("2d");
+          let selected =
+            Math.floor(
+              ((-0.2 - angle) * participantNames.length) / (2 * Math.PI)
+            ) % participantNames.length;
+          if (selected < 0) {
+            selected += participantNames.length;
+          }
+        //  alert(selected);
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(angle);
+          ctx.translate(
+            -wheels[selected].width / 2,
+            -wheels[selected].height / 2
+          );
+          ctx.drawImage(wheels[selected], 0, 0);
+          ctx.restore();
+          ctx.drawImage(frame, cx - frame.width / 2, cy - frame.height / 2);
+        }
+
+        let angle = 0,
+          running = false;
+        function spinTo(winner, duration) {
+          //alert(duration);
+          let final_angle = -0.2 - (winningAngle * 2 * Math.PI) / 360;
+          let start_angle =
+            angle -
+            Math.floor(angle / (2 * Math.PI)) * 2 * Math.PI -
+            10 * 2 * Math.PI;
+          let start = performance.now();
+          function frame() {
+            let now = performance.now();
+            let t = Math.min(1, (now - start) / duration);
+            t = -0.66 * t * t * t * t + 2.5 * t * t * t - 4 * t * t + 3.16 * t; // ease in out
+            angle = start_angle + t * (final_angle - start_angle);
+            repaint(angle);
+            if (t < 1) requestAnimationFrame(frame);
+            else running = false;
+          }
+          requestAnimationFrame(frame);
+          running = true;
+        }
+
+        canvas.onmousedown = function () {
+          if (!running) {
+            winningAngle = Math.random() * 360;
+            spinTo(winner | 0, 10000);
+            for (var i = 0; i < startPoints.length; i++) {
+              for (var j = 0; j < endPoints.length; j++) {
+                if (
+                  winningAngle < endPoints[j] &&
+                  winningAngle > startPoints[i]
+                ) {
+                  winner = i;
+                }
+              }
+            }
+            setTimeout(
+              () => alert(participantNames[winner] + " is the winner!"),
+              10000
+            );
+          }
+        };
+
+        repaint(angle);
+        let csz = null;
+        setInterval(function () {
+          let sz = innerWidth + "/" + innerHeight;
+          if (csz !== sz) {
+            csz = sz;
+            wheels = frame = null;
+            repaint(angle);
+          }
+        }, 10);
+      }
+      function reCreateWheel() {
+        //Remove winner from parallel arrays, adjust ticket number
+        participantNames.splice(winner, 1);
+        startPoints = [];
+        endPoints = [];
+        tickets = tickets - participantTickets[winner];
+        participantTickets.splice(winner, 1);
+        calculateAngles(participantNames, participantTickets);
+        createWheel();
+      }
+
+      function calculateAngles(participantNames, participantTickets) {
+        //Calculate start and stop angles for each participant
+        startPoints.splice(0, startPoints.length);
+        endPoints.splice(0, endPoints.length);
+        var start = 0;
+        for (i = 0; i < participantNames.length; i++) {
+          startPoints.push(start);
+          endPoints.push(
+            (360 * parseInt(participantTickets[i])) / tickets + start
+          );
+          start = endPoints[i];
+        }
+      }
+    </script>
+  </body>
+</body>
